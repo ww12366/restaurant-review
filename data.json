@@ -1,0 +1,32 @@
+{
+  "users": [
+    {
+      "id": "mn8xzdj2xe2blgtmz5f",
+      "username": "www",
+      "password": "2ac9a6746aca543af8dff39894cfe8173afba21eb01c6fae33d52947222855ef"
+    }
+  ],
+  "restaurants": [
+    {
+      "id": "mn8xzxt66o7ylqhdmyf",
+      "name": "厕所",
+      "address": "家",
+      "createdBy": "www",
+      "comments": [
+        {
+          "id": "mn8y03tp4n8785aixoq",
+          "author": "www",
+          "text": "操",
+          "time": "2026-03-27T13:34:05.149Z"
+        },
+        {
+          "id": "mn8y01afvsqgbe50qej",
+          "author": "www",
+          "text": "事",
+          "time": "2026-03-27T13:34:01.863Z"
+        }
+      ],
+      "createdAt": "2026-03-27T13:33:57.354Z"
+    }
+  ]
+}
