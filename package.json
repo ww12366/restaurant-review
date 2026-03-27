@@ -1,0 +1,12 @@
+{
+  "name": "restaurant-review",
+  "version": "1.0.0",
+  "description": "餐厅评分网站",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
