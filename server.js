@@ -2,13 +2,47 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const multer = require('multer');
 
 const app = express();
 const PORT = 3000;
 const DATA_FILE = path.join(__dirname, 'data.json');
+const UPLOAD_DIR = path.join(__dirname, 'public', 'uploads');
+
+// 确保上传目录存在
+if (!fs.existsSync(UPLOAD_DIR)) {
+    fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+}
+
+// 配置 multer
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, UPLOAD_DIR);
+    },
+    filename: (req, file, cb) => {
+        const ext = path.extname(file.originalname);
+        cb(null, Date.now() + Math.random().toString(36).substr(2) + ext);
+    }
+});
+
+const upload = multer({
+    storage,
+    limits: { fileSize: 10 * 1024 * 1024, files: 20 }, // 10MB, 最多20张
+    fileFilter: (req, file, cb) => {
+        const allowed = ['.jpg', '.jpeg', '.png', '.gif'];
+        const ext = path.extname(file.originalname).toLowerCase();
+        if (allowed.includes(ext)) {
+            cb(null, true);
+        } else {
+            cb(new Error('仅支持 jpg, png, gif 格式'));
+        }
+    }
+});
 
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
+app.use('/uploads', express.static('uploads'));
 
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'restaurant.html'));
@@ -75,6 +109,7 @@ app.get('/api/restaurants', (req, res) => {
         id: r.id,
         name: r.name,
         address: r.address,
+        images: r.images || [],
         createdBy: r.createdBy,
         commentCount: r.comments.length,
         createdAt: r.createdAt
@@ -82,16 +117,18 @@ app.get('/api/restaurants', (req, res) => {
     res.json(restaurants);
 });
 
-app.post('/api/restaurants', (req, res) => {
+app.post('/api/restaurants', upload.array('images', 20), (req, res) => {
     const { name, address, username } = req.body;
     if (!name || !address) {
         return res.status(400).json({ error: '请填写餐厅名称和地址' });
     }
     const data = loadData();
+    const images = req.files ? req.files.map(f => '/uploads/' + f.filename) : [];
     const restaurant = {
         id: generateId(),
         name,
         address,
+        images: images,
         createdBy: username,
         comments: [],
         createdAt: new Date().toISOString()
@@ -110,10 +147,12 @@ app.get('/api/restaurants/:id', (req, res) => {
     res.json(restaurant);
 });
 
-app.post('/api/restaurants/:id/comments', (req, res) => {
+app.post('/api/restaurants/:id/comments', upload.array('images', 20), (req, res) => {
     const { username, text } = req.body;
-    if (!text) {
-        return res.status(400).json({ error: '请输入评论内容' });
+    const textValue = text || '';
+    const images = req.files ? req.files.map(f => '/uploads/' + f.filename) : [];
+    if (!textValue && images.length === 0) {
+        return res.status(400).json({ error: '请输入评论内容或图片' });
     }
     const data = loadData();
     const restaurant = data.restaurants.find(r => r.id === req.params.id);
@@ -123,7 +162,8 @@ app.post('/api/restaurants/:id/comments', (req, res) => {
     const comment = {
         id: generateId(),
         author: username,
-        text,
+        text: text || '',
+        images: images,
         time: new Date().toISOString()
     };
     restaurant.comments.unshift(comment);

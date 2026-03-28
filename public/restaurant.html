@@ -215,6 +215,44 @@
             min-height: 100px;
             resize: vertical;
         }
+        .image-upload-box {
+            width: 100%;
+            aspect-ratio: 1;
+            max-width: 200px;
+            border: 2px dashed #ddd;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: border-color 0.3s, background 0.3s;
+            margin: 0 auto;
+        }
+        .image-upload-box:hover {
+            border-color: #c0392b;
+            background: #fafafa;
+        }
+        .image-upload-box .upload-text {
+            color: #c0392b;
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+        .image-upload-box .upload-hint {
+            color: #999;
+            font-size: 0.8rem;
+        }
+        #imagePreview {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+        #imagePreview img {
+            width: 100%;
+            aspect-ratio: 1;
+            object-fit: cover;
+            border-radius: 8px;
+        }
         .form-buttons {
             display: flex;
             gap: 12px;
@@ -274,21 +312,35 @@
 
         .comment-form {
             background: #fff;
+            padding: 10px 20px;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.08);
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .detail-page {
             padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            max-width: 600px;
+            margin: 0 auto;
+            padding-bottom: 200px;
         }
         .comment-form textarea {
-            width: 100%;
-            padding: 14px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
+            flex: 1;
+            padding: 10px 16px;
+            border: 1px solid #ddd;
+            border-radius: 24px;
             font-size: 1rem;
             font-family: inherit;
-            min-height: 80px;
-            margin-bottom: 12px;
-            resize: vertical;
+            min-height: 44px;
+            max-height: 150px;
+            resize: none;
+            width: 100%;
+            box-shadow: 0 1px 6px rgba(32,33,36,.28);
         }
         .comment-form textarea:focus {
             outline: none;
@@ -298,13 +350,50 @@
             background: #c0392b;
             color: #fff;
             border: none;
-            padding: 12px 24px;
-            border-radius: 8px;
+            padding: 8px 16px;
+            border-radius: 24px;
             cursor: pointer;
+            white-space: nowrap;
             font-size: 1rem;
         }
         .comment-form button:hover {
             background: #a93226;
+        }
+        .comment-input-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            width: 100%;
+        }
+        .comment-input-row textarea {
+            flex: 1;
+            min-width: 0;
+        }
+        .comment-input-row button {
+            flex-shrink: 0;
+        }
+        .comment-input-row .img-btn {
+            width: 36px;
+            height: 36px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+        .comment-img-preview {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 4px;
+            margin-top: 8px;
+            width: 100%;
+            max-width: 400px;
+        }
+        .comment-img-preview img {
+            width: 100%;
+            aspect-ratio: 1;
+            object-fit: cover;
+            border-radius: 4px;
         }
 
         .comment-list {
@@ -312,6 +401,7 @@
             border-radius: 12px;
             overflow: hidden;
             box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
         }
         .comment-item {
             padding: 16px 20px;
@@ -390,6 +480,15 @@
                 <label>餐厅地址</label>
                 <input type="text" id="restaurantAddress" placeholder="请输入餐厅地址" />
             </div>
+            <div class="form-group">
+                <label>餐厅图片（可选，最多20张）</label>
+                <div class="image-upload-box" onclick="document.getElementById('restaurantImage').click()">
+                    <input type="file" id="restaurantImage" accept="image/jpeg,image/png,image/gif" multiple onchange="previewImages(this)" style="display:none;" />
+                    <span class="upload-text">选择图片</span>
+                    <span class="upload-hint">最多20张，支持 jpg, png, gif</span>
+                </div>
+                <div id="imagePreview" style="display:none;margin-top:10px;"></div>
+            </div>
             <div class="form-buttons">
                 <button class="cancel-btn" onclick="showMain()">取消</button>
                 <button class="submit-btn" onclick="createRestaurant()">创建</button>
@@ -401,12 +500,18 @@
         <button class="back-btn" onclick="showMain()">返回</button>
         <div class="detail-page">
             <div class="detail-header">
+                <div id="detailImages" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:15px;"></div>
                 <h3 id="detailName"></h3>
                 <p class="address" id="detailAddress"></p>
             </div>
             <div class="comment-form">
-                <textarea id="commentText" placeholder="写下你的评论..."></textarea>
-                <button onclick="addComment()">发布评论</button>
+                <div class="comment-input-row">
+                    <textarea id="commentText" placeholder="写下你的评论..."></textarea>
+                    <button onclick="addComment()">发布</button>
+                    <button class="img-btn" onclick="document.getElementById('commentImages').click()">📷</button>
+                </div>
+                <input type="file" id="commentImages" accept="image/jpeg,image/png,image/gif" multiple onchange="previewCommentImages(this)" style="display:none;" />
+                <div id="commentImagePreview" class="comment-img-preview"></div>
             </div>
             <div class="comment-list" id="commentList"></div>
         </div>
@@ -415,6 +520,8 @@
     <script>
         let currentUser = null;
         let currentRestaurantId = null;
+        let selectedCommentImages = [];
+        let selectedRestaurantImages = [];
 
         function showPage(pageId) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -484,6 +591,10 @@
         }
 
         async function showMain() {
+            window.scrollTo(0, 0);
+            selectedCommentImages = [];
+            document.getElementById('commentImagePreview').innerHTML = '';
+            document.getElementById('commentText').value = '';
             showPage('mainPage');
             document.getElementById('welcomeUser').textContent = `欢迎, ${currentUser.username}`;
             const res = await fetch('/api/restaurants');
@@ -494,6 +605,7 @@
             } else {
                 list.innerHTML = restaurants.map(r => `
                     <div class="restaurant-card" onclick="showDetail('${r.id}')">
+                        ${r.images && r.images.length > 0 ? `<img src="${r.images[0]}" style="width:100%;height:150px;object-fit:cover;border-radius:8px;margin-bottom:10px;" />` : ''}
                         <h3>${r.name}</h3>
                         <p class="address">${r.address}</p>
                         <div class="meta">
@@ -508,22 +620,11 @@
         function showCreate() {
             document.getElementById('restaurantName').value = '';
             document.getElementById('restaurantAddress').value = '';
+            document.getElementById('restaurantImage').value = '';
+            selectedRestaurantImages = [];
+            document.getElementById('imagePreview').innerHTML = '';
+            document.getElementById('imagePreview').style.display = 'none';
             showPage('createPage');
-        }
-
-        async function createRestaurant() {
-            const name = document.getElementById('restaurantName').value.trim();
-            const address = document.getElementById('restaurantAddress').value.trim();
-            if (!name || !address) {
-                alert('请填写餐厅名称和地址');
-                return;
-            }
-            await fetch('/api/restaurants', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, address, username: currentUser.username })
-            });
-            showMain();
         }
 
         async function showDetail(id) {
@@ -532,6 +633,22 @@
             const restaurant = await res.json();
             document.getElementById('detailName').textContent = restaurant.name;
             document.getElementById('detailAddress').textContent = restaurant.address;
+            const imagesContainer = document.getElementById('detailImages');
+            imagesContainer.innerHTML = '';
+            if (restaurant.images && restaurant.images.length > 0) {
+                restaurant.images.forEach(img => {
+                    const imgEl = document.createElement('img');
+                    imgEl.src = img;
+                    imgEl.style.width = '100%';
+                    imgEl.style.height = '150px';
+                    imgEl.style.objectFit = 'cover';
+                    imgEl.style.borderRadius = '8px';
+                    imagesContainer.appendChild(imgEl);
+                });
+                imagesContainer.style.display = 'grid';
+            } else {
+                imagesContainer.style.display = 'none';
+            }
             renderComments(restaurant.comments);
             showPage('detailPage');
         }
@@ -545,24 +662,122 @@
                     <div class="comment-item">
                         <div class="author">${c.author}</div>
                         <div class="text">${c.text}</div>
+                        ${c.images && c.images.length > 0 ? `<div class="comment-imgs" style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-top:8px;">${c.images.map(img => `<img src="${img}" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:4px;" />`).join('')}</div>` : ''}
                         <div class="time">${new Date(c.time).toLocaleString()}</div>
                     </div>
                 `).join('');
             }
         }
 
-        async function addComment() {
-            const text = document.getElementById('commentText').value.trim();
-            if (!text) {
-                alert('请输入评论内容');
+        async function createRestaurant() {
+            const name = document.getElementById('restaurantName').value.trim();
+            const address = document.getElementById('restaurantAddress').value.trim();
+            const imageInput = document.getElementById('restaurantImage');
+            if (!name || !address) {
+                alert('请填写餐厅名称和地址');
                 return;
             }
-            await fetch(`/api/restaurants/${currentRestaurantId}/comments`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username: currentUser.username, text })
+            const formData = new FormData();
+            formData.append('name', name);
+            formData.append('address', address);
+            formData.append('createdBy', currentUser.username);
+            selectedRestaurantImages.forEach(file => {
+                formData.append('images', file);
             });
+            const response = await fetch('/api/restaurants', {
+                method: 'POST',
+                body: formData
+            });
+            const result = await response.json();
+            if (result.error) {
+                alert(result.error);
+                return;
+            }
+            selectedRestaurantImages = [];
+            document.getElementById('imagePreview').innerHTML = '';
+            document.getElementById('restaurantName').value = '';
+            document.getElementById('restaurantAddress').value = '';
+            document.getElementById('restaurantImage').value = '';
+            showMain();
+        }
+
+        function previewImages(input) {
+            const preview = document.getElementById('imagePreview');
+            if (input.files && input.files.length > 0) {
+                const newFiles = Array.from(input.files).slice(0, 20 - selectedRestaurantImages.length);
+                newFiles.forEach(file => {
+                    selectedRestaurantImages.push(file);
+                });
+            }
+            preview.innerHTML = '';
+            selectedRestaurantImages.forEach((file, index) => {
+                const url = URL.createObjectURL(file);
+                const img = document.createElement('img');
+                img.src = url;
+                img.onclick = function() {
+                    selectedRestaurantImages.splice(index, 1);
+                    previewImages({files: []});
+                };
+                preview.appendChild(img);
+            });
+            if (selectedRestaurantImages.length > 0) {
+                preview.style.display = 'grid';
+            } else {
+                preview.style.display = 'none';
+            }
+            if (input && input.files) {
+                input.value = '';
+            }
+        }
+
+        function previewCommentImages(input) {
+            const preview = document.getElementById('commentImagePreview');
+            if (input.files && input.files.length > 0) {
+                const newFiles = Array.from(input.files).slice(0, 20 - selectedCommentImages.length);
+                newFiles.forEach(file => {
+                    selectedCommentImages.push(file);
+                });
+            }
+            preview.innerHTML = '';
+            selectedCommentImages.forEach((file, index) => {
+                const url = URL.createObjectURL(file);
+                const img = document.createElement('img');
+                img.src = url;
+                img.onclick = function() {
+                    selectedCommentImages.splice(index, 1);
+                    previewCommentImages({files: []});
+                };
+                preview.appendChild(img);
+            });
+        }
+
+        async function addComment() {
+            const text = document.getElementById('commentText').value.trim();
+            const formData = new FormData();
+            formData.append('username', currentUser.username);
+            if (text) {
+                formData.append('text', text);
+            }
+            selectedCommentImages.forEach(file => {
+                formData.append('images', file);
+            });
+            if (!text && selectedCommentImages.length === 0) {
+                alert('请输入评论内容或图片');
+                return;
+            }
+            const response = await fetch(`/api/restaurants/${currentRestaurantId}/comments`, {
+                method: 'POST',
+                body: formData
+            });
+            const result = await response.json();
+            if (result.error) {
+                alert(result.error);
+                return;
+            }
             document.getElementById('commentText').value = '';
+            document.getElementById('commentImages').value = '';
+            selectedCommentImages = [];
+            document.getElementById('commentImagePreview').innerHTML = '';
             const res = await fetch(`/api/restaurants/${currentRestaurantId}`);
             const restaurant = await res.json();
             renderComments(restaurant.comments);
